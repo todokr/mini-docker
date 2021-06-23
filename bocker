@@ -1,0 +1,29 @@
+#!/usr/bin/python3
+
+import click
+
+from commands.pull_command import run_pull
+from commands.run_command import run_run
+
+@click.group()
+def cli():
+    pass
+
+@click.command()
+@click.argument('image_name')
+def pull(image_name):
+    click.echo(f'Pulling image: {image_name}')
+    run_pull()
+
+@click.command()
+@click.argument('image_name')
+@click.argument('command')
+def run(image_name, command):
+    click.echo(f'Running {image_name} container: {command}')
+    run_run()
+
+cli.add_command(pull)
+cli.add_command(run)
+
+if __name__ == '__main__':
+    cli()

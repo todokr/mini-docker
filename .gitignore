@@ -1,0 +1,6 @@
+.vagrant
+__pycache__/
+*.py[cod]
+*$py.class
+workspace.code-workspace
+.DS_Store
