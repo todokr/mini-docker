@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import re
 import click
 
 from commands.pull_command import run_pull
@@ -12,8 +13,13 @@ def cli():
 @click.command()
 @click.argument('image_name')
 def pull(image_name):
-    click.echo(f'Pulling image: {image_name}')
-    run_pull()
+    match = re.match(r'(?P<image>[^/:]+)(:)?(?P<tag>[^/:]*)', image_name)
+    if not match:
+        print('invalid args')
+        sys.exit(1)
+    image = match.group('image')
+    tag = match.group('tag') if match.group('tag') else 'latest'
+    run_pull(image, tag)
 
 @click.command()
 @click.argument('image_name')
