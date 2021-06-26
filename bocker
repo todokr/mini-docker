@@ -2,9 +2,13 @@
 
 import re
 import click
+import sys
 
 from commands.pull_command import run_pull
 from commands.run_command import run_run
+
+
+IMAGE_TAG_PATTERN = r'(?P<image>[^/:]+)(:)?(?P<tag>[^/:]*)'
 
 @click.group()
 def cli():
@@ -13,7 +17,7 @@ def cli():
 @click.command()
 @click.argument('image_name')
 def pull(image_name):
-    match = re.match(r'(?P<image>[^/:]+)(:)?(?P<tag>[^/:]*)', image_name)
+    match = re.match(IMAGE_TAG_PATTERN, image_name)
     if not match:
         print('invalid args')
         sys.exit(1)
@@ -22,11 +26,16 @@ def pull(image_name):
     run_pull(image, tag)
 
 @click.command()
-@click.argument('image_name')
-@click.argument('command')
+@click.argument('image_name', required=True)
+@click.argument('command', required=True, nargs=-1)
 def run(image_name, command):
-    click.echo(f'Running {image_name} container: {command}')
-    run_run()
+    match = re.match(IMAGE_TAG_PATTERN, image_name)
+    if not match:
+        print('invalid args')
+        sys.exit(1)
+    image = match.group('image')
+    tag = match.group('tag') if match.group('tag') else 'latest'
+    run_run(image, tag, command)
 
 cli.add_command(pull)
 cli.add_command(run)
