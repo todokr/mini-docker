@@ -131,7 +131,7 @@ def _exec_container(
         linux.umount2('/old_root', linux.MNT_DETACH)
         os.rmdir('/old_root')
 
-        print(f'👌 {colors.GREEN}Docker container {container_id} started! executing {command[0]}{colors.END}')
+        print(f'🏃️💨 {colors.GREEN}Docker container {container_id} started! executing {command[0]}{colors.END}')
         os.execvp(command[0], command)
 
     except Exception as e:
