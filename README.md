@@ -127,7 +127,6 @@ b.txt
 b.txt
 ```
 
-
 ##### コンテナの最大CPU利用量を制限できる
 
 *host (VM)*
@@ -167,3 +166,7 @@ $ sudo su -
 yes: standard output: Broken pipe
 Killed
 ```
+
+## 参考
+- [Fewbytes/rubber-docker](https://github.com/Fewbytes/rubber-docker)
+- [tonybaloney/mocker](https://github.com/tonybaloney/mocker)
