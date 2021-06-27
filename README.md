@@ -127,6 +127,27 @@ b.txt
 b.txt
 ```
 
+
+##### コンテナの最大CPU利用量を制限できる
+
+*host (VM)*
+```bash
+// 1コアの25%までに制限
+# ./bocker run --cpus 0.25 ubuntu /bin/bash
+```
+
+*host (VM - another terminal)*
+```bash
+// CPUの状況をグラフィカルに表示するかっこいいツールのインストール
+# pip3 install s-tui
+# s-tui
+```
+
+*container*
+```bash
+# yes > /dev/null
+```
+
 ##### コンテナの最大メモリ利用量を制限できる
 
 *host (VM)*
