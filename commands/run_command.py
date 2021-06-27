@@ -143,8 +143,7 @@ def run_run(image: str, tag: str, cpus: float, memory: str, command: List[str]):
     flags = (
         linux.CLONE_NEWPID | # PID名前空間: プロセスIDの分離。異なる名前空間同士では、同一のプロセスIDを持つことが可能になる
         linux.CLONE_NEWUTS | # UTS名前空間: ホスト名, ドメイン名の分離
-        linux.CLONE_NEWNS  | # マウント名前空間: ファイルシステムのマウントポイントの分離
-        linux.CLONE_NEWNET   # ネットワーク名前空間: ネットワークデバイス, ポート, ルーティングテーブル, ソケットなどの分離
+        linux.CLONE_NEWNS    # マウント名前空間: ファイルシステムのマウントポイントの分離
     )
 
     # 子プロセスを作成。コンテナとして立ち上げる
