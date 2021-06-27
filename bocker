@@ -27,7 +27,7 @@ def pull(image_name):
 
 @click.command()
 @click.argument('image_name', required=True)
-@click.option('--cpus', help='Number of CPUs', default=None)
+@click.option('--cpus', help='Number of CPUs', default=None, type=float)
 @click.option('--memory',help='Memory limit in bytes.', default=None)
 @click.argument('command', required=True, nargs=-1)
 def run(image_name, cpus, memory, command):

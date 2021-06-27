@@ -11,19 +11,22 @@ import commands.colors as colors
 REGISTRY_BASE = 'https://registry-1.docker.io/v2'
 IMAGES_DIR = '/var/opt/app/images'
 
+
 def _fetch_auth_token(library: str, image: str) -> str:
     token_url = f'https://auth.docker.io/token?service=registry.docker.io&scope=repository:{library}/{image}:pull'
     token_response = requests.get(token_url)
     token_response.raise_for_status()
     return token_response.json()['token']
 
+
 def _fetch_manifest(library: str, image: str, tag: str, token: str) -> dict:
     print(f'Fetching manifest for {image}:{tag}')
     manifest_url = f'{REGISTRY_BASE}/{library}/{image}/manifests/{tag}'
     headers = {'Authorization': f'Bearer {token}'}
-    manifest_response = requests.get(manifest_url, headers = headers)
+    manifest_response = requests.get(manifest_url, headers=headers)
     manifest_response.raise_for_status()
     return manifest_response.json()
+
 
 def _fetch_layer(library: str, image: str, layer_digest: str, token: str) -> Iterable[bytes]:
     print(f'Fetching layer: {layer_digest}')
@@ -35,7 +38,8 @@ def _fetch_layer(library: str, image: str, layer_digest: str, token: str) -> Ite
         if chunk:
             yield chunk
 
-def run_pull(image:str, tag: str):
+
+def run_pull(image: str, tag: str):
     print(f'Pulling {image}:{tag} ...')
     library = 'library'
 
@@ -57,7 +61,8 @@ def run_pull(image:str, tag: str):
     manifest_json_name = f'{image_name}.json'
 
     with open(os.path.join(IMAGES_DIR, manifest_json_name), 'w') as manifest_json:
-        manifest_json.write(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True, separators=(',', ': ')))
+        manifest_json.write(json.dumps(
+            manifest, ensure_ascii=False, indent=2, sort_keys=True, separators=(',', ': ')))
 
     # Docker image を構成する各イメージ・レイヤを取得して保存
     # See also: https://qiita.com/zembutsu/items/24558f9d0d254e33088f
@@ -74,6 +79,6 @@ def run_pull(image:str, tag: str):
                 if chunk:
                     tar.write(chunk)
         with tarfile.open(layer_tar_name, 'r') as tar:
-            tar.extractall(str(contents_path)) 
-    
+            tar.extractall(str(contents_path))
+
     print(f'👌 {colors.GREEN}Docker image {image}:{tag} has been stored in {image_base_dir}{colors.END}')
