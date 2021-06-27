@@ -15,6 +15,8 @@ import linux
 
 IMAGES_DIR = '/var/opt/app/images'
 CONTAINER_DATA_DIR = '/var/opt/app/container'
+CGROUP_CPU_DIR = '/sys/fs/cgroup/cpu'
+CGROUP_MEMORY_DIR = '/sys/fs/cgroup/memory'
 
 @dataclass(frozen=True)
 class ContainerDir:
@@ -34,7 +36,40 @@ def _init_container_dir(container_id: str) -> ContainerDir:
     
     return ContainerDir(root_dir=root_dir, rw_dir=rw_dir, work_dir=work_dir)
 
-def _exec_container(image: str, tag: str, container_id: str, container_dir: ContainerDir, command: List[str]):
+def _exec_container(
+    image: str,
+    tag: str,
+    container_id: str,
+    container_dir: ContainerDir,
+    cpus: int,
+    memory: str,
+    command: List[str]):
+
+    # cgroup でコンテナが利用できるリソースに制限を加える
+    #container_cgroup_cpu_dir = os.path.join(
+    #    CGROUP_CPU_DIR,
+    #    'bocker',
+    #    container_id
+    #)
+    # if not os.path.exists(container_cgroup_cpu_dir):
+        # os.makedirs(container_cgroup_cpu_dir)
+    # task_file = os.path.join(container_cgroup_cpu_dir, 'tasks')
+    # open(task_file, 'w').write(str(os.getpid()))
+
+    # コンテナに対してメモリの制限を行う
+    # See: https://gihyo.jp/admin/serial/01/linux_containers/0005
+    container_memory_cgroup_dir = os.path.join(CGROUP_MEMORY_DIR, 'bocker', container_id)
+    if not os.path.exists(container_memory_cgroup_dir):
+        os.makedirs(container_memory_cgroup_dir)
+    memory_tasks_file = os.path.join(container_memory_cgroup_dir, 'tasks')
+    open(memory_tasks_file, 'w').write(str(os.getpid()))
+
+    if memory is not None:
+        mem_limit_file = os.path.join(container_memory_cgroup_dir, 'memory.limit_in_bytes')
+        memsw_linit_file = os.path.join(container_memory_cgroup_dir, 'memory.memsw.limit_in_bytes') # swapをさせない
+        for f in (mem_limit_file, memsw_linit_file):
+            open(f, 'w').write(str(memory))
+
 
     # コンテナにホスト名をセット
     linux.sethostname(container_id)
@@ -80,21 +115,13 @@ def _exec_container(image: str, tag: str, container_id: str, container_dir: Cont
     os.chdir('/')
     linux.umount2('/old_root', linux.MNT_DETACH)
     os.rmdir('/old_root')
+
+    print(f'👌 {colors.GREEN}Docker container {container_id} started! executing {command[0]}{colors.END}')
     os.execvp(command[0], command)
 
-def run_run(image: str, tag: str, command: List[str]):
+def run_run(image: str, tag: str, cpus: int, memory: str, command: List[str]):
     print(f'Start running {image}:{tag} ...')
-    
-    #library = 'library'
-    # manifest = os.path.join(IMAGES_DIR, f'{library}_{image}_{tag}.json')
-    # with open(manifest) as m:
-    #   image_details = json.loads(m.read())
-    
-    # See: https://docs.docker.com/registry/spec/manifest-v2-1/#manifest-field-descriptions   
-    # image_config = json.loads(image_details['history'][0]['v1Compatibility'])['config']
-    # env_vars = image_config['Env']
-    # start_command = image_config['Cmd']
-    # working_dir = image_config['WorkingDir']
+    print(f'Resource: cpus={cpus}, memory={memory}')
 
     id = uuid.uuid4()
     container_id = f'{image}_{tag}_{id}'
@@ -108,8 +135,8 @@ def run_run(image: str, tag: str, command: List[str]):
     )
     
     # 子プロセスを作成。コンテナとして立ち上げる
-    pid = linux.clone(_exec_container, flags, (image, tag, container_id, container_dir, command))
-    print(f'👌 {colors.GREEN}Docker container {container_id} started{colors.END}')
+    pid = linux.clone(_exec_container, flags, (image, tag, container_id, container_dir, cpus, memory, command))
+    print(f'container process ID: {pid}')
 
     _, status = os.waitpid(pid, 0)
     print(f'{pid} exited with status {status}')

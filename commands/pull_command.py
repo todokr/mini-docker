@@ -52,7 +52,8 @@ def run_pull(image:str, tag: str):
 
     image_name = f"{manifest['name'].replace('/', '_')}_{manifest['tag']}"
     image_base_dir = os.path.join(IMAGES_DIR, image_name)
-    shutil.rmtree(image_base_dir)
+    if os.path.exists(image_base_dir):
+        shutil.rmtree(image_base_dir)
     manifest_json_name = f'{image_name}.json'
 
     with open(os.path.join(IMAGES_DIR, manifest_json_name), 'w') as manifest_json:

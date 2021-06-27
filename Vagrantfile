@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |vb|
     vb.name = "vm-for-mini-docker"
     vb.gui = false
-    vb.cpus = 2
+    vb.cpus = 1
     vb.memory = "1024"
   end
   

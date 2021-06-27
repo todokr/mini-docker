@@ -27,15 +27,17 @@ def pull(image_name):
 
 @click.command()
 @click.argument('image_name', required=True)
+@click.option('--cpus', help='Number of CPUs', default=None)
+@click.option('--memory',help='Memory limit in bytes.', default=None)
 @click.argument('command', required=True, nargs=-1)
-def run(image_name, command):
+def run(image_name, cpus, memory, command):
     match = re.match(IMAGE_TAG_PATTERN, image_name)
     if not match:
         print('invalid args')
         sys.exit(1)
     image = match.group('image')
     tag = match.group('tag') if match.group('tag') else 'latest'
-    run_run(image, tag, command)
+    run_run(image, tag, cpus, memory, command)
 
 cli.add_command(pull)
 cli.add_command(run)
