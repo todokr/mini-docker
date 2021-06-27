@@ -43,37 +43,28 @@ def _exec_container(
     try:
         # コンテナの最大CPU利用量を制限
         # See: https://gihyo.jp/admin/serial/01/linux_containers/0004?page=2
-        container_cpu_cgroup_dir = os.path.join(
-            CGROUP_CPU_DIR,
-            'bocker',
-            container_id
-        )
+        container_cpu_cgroup_dir = os.path.join(CGROUP_CPU_DIR, 'bocker', container_id)
         if not os.path.exists(container_cpu_cgroup_dir):
             os.makedirs(container_cpu_cgroup_dir)
         cpu_task_file = os.path.join(container_cpu_cgroup_dir, 'tasks')
         open(cpu_task_file, 'w').write(str(os.getpid()))
         if cpus is not None:
-            cpu_period_file = os.path.join(
-                container_cpu_cgroup_dir, 'cpu.cfs_period_us')
+            cpu_period_file = os.path.join(container_cpu_cgroup_dir, 'cpu.cfs_period_us')
             period_us = int(open(cpu_period_file).read())
-            cpu_quota_file = os.path.join(
-                container_cpu_cgroup_dir, 'cpu.cfs_quota_us')
+            cpu_quota_file = os.path.join(container_cpu_cgroup_dir, 'cpu.cfs_quota_us')
             open(cpu_quota_file, 'w').write(str(int(period_us * cpus)))
 
         # コンテナの最大メモリ利用量を制限
         # See: https://gihyo.jp/admin/serial/01/linux_containers/0005
-        container_memory_cgroup_dir = os.path.join(
-            CGROUP_MEMORY_DIR, 'bocker', container_id)
+        container_memory_cgroup_dir = os.path.join(CGROUP_MEMORY_DIR, 'bocker', container_id)
         if not os.path.exists(container_memory_cgroup_dir):
             os.makedirs(container_memory_cgroup_dir)
         memory_tasks_file = os.path.join(container_memory_cgroup_dir, 'tasks')
         open(memory_tasks_file, 'w').write(str(os.getpid()))
 
         if memory is not None:
-            mem_limit_file = os.path.join(
-                container_memory_cgroup_dir, 'memory.limit_in_bytes')
-            memsw_linit_file = os.path.join(
-                container_memory_cgroup_dir, 'memory.memsw.limit_in_bytes')  # swapをさせない
+            mem_limit_file = os.path.join(container_memory_cgroup_dir, 'memory.limit_in_bytes')
+            memsw_linit_file = os.path.join(container_memory_cgroup_dir, 'memory.memsw.limit_in_bytes')  # swapをさせない
             for f in (mem_limit_file, memsw_linit_file):
                 open(f, 'w').write(str(memory))
 
@@ -147,6 +138,8 @@ def run_run(image: str, tag: str, cpus: float, memory: str, command: List[str]):
     container_id = f'{image}_{tag}_{id}'
     container_dir = _init_container_dir(container_id)
 
+    # 分離させる名前空間のフラグ
+    # See: https://gihyo.jp/admin/serial/01/linux_containers/0002
     flags = (
         linux.CLONE_NEWPID | # PID名前空間: プロセスIDの分離。異なる名前空間同士では、同一のプロセスIDを持つことが可能になる
         linux.CLONE_NEWUTS | # UTS名前空間: ホスト名, ドメイン名の分離
@@ -155,6 +148,7 @@ def run_run(image: str, tag: str, cpus: float, memory: str, command: List[str]):
     )
 
     # 子プロセスを作成。コンテナとして立ち上げる
+    # See: https://linuxjm.osdn.jp/html/LDP_man-pages/man2/clone.2.html
     pid = linux.clone(_exec_container, flags, (image, tag, container_id, container_dir, cpus, memory, command))
     print(f'container process ID: {pid}')
 
