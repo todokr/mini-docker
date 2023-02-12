@@ -1,5 +1,5 @@
 # Mini docker
-学習用のなんちゃってDocker
+学習用のなんちゃってDocker runtime
 
 ## セットアップ
 
